@@ -34,7 +34,7 @@ Your personal Claude rules are automatically synced to GitHub with markdown lint
 ## Quick Start (Fork Setup)
 
 ```bash
-gh repo fork fvcproductions/how-frances-codes --clone
+gh repo fork FrancesCoronel/how-frances-codes --clone
 cd how-frances-codes
 ./scripts/setup.sh
 ~/bin/sync-claude-rules.sh

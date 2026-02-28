@@ -2,7 +2,7 @@
 
 Personal Claude Code configuration — MCPs, plugins, hooks, settings, skills, and coding preferences.
 
-**[View the site](https://fvcproductions.github.io/how-frances-codes/)**
+**[View the site](https://FrancesCoronel.github.io/how-frances-codes/)**
 
 ## Fork It 🍴
 
@@ -10,7 +10,7 @@ Want your own version? Three steps:
 
 ```bash
 # 1. Fork this repo on GitHub, then clone your fork
-gh repo fork fvcproductions/how-frances-codes --clone
+gh repo fork FrancesCoronel/how-frances-codes --clone
 
 # 2. Run setup (auto-detects your name, GitHub user, projects)
 cd how-frances-codes
