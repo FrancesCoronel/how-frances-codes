@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How Frances Codes</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Self-contained aubergine theme -->
+  <style>
+    :root, [data-theme="dark"] {
+      --bg: #1a141f;
+      --surface: #231b2e;
+      --surface-hover: #2c2339;
+      --border: #3d3347;
+      --text: #f4ede4;
+      --text-heading: #fff;
+      --text-muted: #9d9199;
+      --accent: #c474d3;
+      --accent-dim: rgba(196,116,211,0.15);
+      --green: #2eb67d;
+      --green-dim: rgba(46,182,125,0.15);
+      --blue: #36c5f0;
+      --blue-dim: rgba(54,197,240,0.15);
+      --orange: #ecb22e;
+      --orange-dim: rgba(236,178,46,0.15);
+      --pink: #e01e5a;
+      --pink-dim: rgba(224,30,90,0.15);
+      --cyan: #00bcd4;
+      --cyan-dim: rgba(0,188,212,0.15);
+      --code-bg: #16111b;
+      --radius: 12px;
+      --tool-tag-bg: rgba(196,116,211,0.1);
+    }
+    [data-theme="light"] {
+      --bg: #fff;
+      --surface: #f8f5fa;
+      --surface-hover: #f0ebf4;
+      --border: #e0d8e6;
+      --text: #1d1c1d;
+      --text-heading: #1d1c1d;
+      --text-muted: #616061;
+      --accent: #9b30a0;
+      --accent-dim: rgba(155,48,160,0.1);
+      --green: #007a5a;
+      --green-dim: rgba(0,122,90,0.1);
+      --blue: #1264a3;
+      --blue-dim: rgba(18,100,163,0.1);
+      --orange: #b87503;
+      --orange-dim: rgba(184,117,3,0.1);
+      --pink: #d40e4e;
+      --pink-dim: rgba(212,14,78,0.1);
+      --cyan: #00838f;
+      --cyan-dim: rgba(0,131,143,0.1);
+      --code-bg: #f0ebf4;
+      --radius: 12px;
+      --tool-tag-bg: rgba(155,48,160,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      line-height: 1.5;
+    }
+    a { color: var(--accent); }
+  </style>
+  <!-- Loading state -->
+  <style>
+    .loading { text-align: center; padding: 80px 24px; color: #9d9199; }
+    .loading-spinner {
+      display: inline-block; width: 32px; height: 32px;
+      border: 3px solid #4a3860; border-top-color: #c474d3;
+      border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+  <!-- Site-specific styles -->
+  <style>
+    /* Hero */
+    .hero {
+      padding: 64px 24px 48px;
+      text-align: center;
+    }
+    .hero-avatar {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      border: 3px solid var(--border);
+      margin-bottom: 20px;
+      transition: border-color 0.15s;
+    }
+    .hero-avatar:hover { border-color: var(--accent); }
+    .hero h1 {
+      font-size: 36px;
+      margin: 0 0 8px;
+      color: var(--text-heading);
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero .subtitle {
+      color: var(--text-muted);
+      font-size: 17px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* Nav tabs */
+    .nav {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      padding: 16px 24px 0;
+      max-width: 960px;
+      margin: 0 auto;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    .nav-tab {
+      padding: 10px 18px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .nav-tab:hover { color: var(--text); }
+    .nav-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* Content */
+    .content {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Stats row */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .stat-card:hover {
+      background: var(--surface-hover);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(74, 21, 75, 0.25);
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--text-heading);
+    }
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+
+    /* Card grid */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .card-grid > a {
+      display: flex;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: all 0.15s;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    .card:hover {
+      background: var(--surface-hover);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(74, 21, 75, 0.25);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .card-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-heading);
+    }
+    .card-desc {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 12px;
+      flex: 1;
+    }
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .badge {
+      font-size: 14px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.3px;
+    }
+    .badge-accent { background: var(--accent-dim); color: var(--accent); }
+    .badge-green { background: var(--green-dim); color: var(--green); }
+    .badge-blue { background: var(--blue-dim); color: var(--blue); }
+    .badge-orange { background: var(--orange-dim); color: var(--orange); }
+    .badge-pink { background: var(--pink-dim); color: var(--pink); }
+
+    /* Tool list inside cards */
+    .tool-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    .tool-tag {
+      font-size: 14px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      background: var(--tool-tag-bg);
+      color: var(--text-muted);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Markdown content */
+    .markdown-body {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    .markdown-body h1 { font-size: 24px; font-weight: 900; color: var(--text-heading); margin: 32px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .markdown-body h1:first-child { margin-top: 0; }
+    .markdown-body h2 { font-size: 20px; font-weight: 700; color: var(--text-heading); margin: 28px 0 12px; }
+    .markdown-body h3 { font-size: 17px; font-weight: 700; color: var(--accent); margin: 24px 0 8px; }
+    .markdown-body p { margin: 8px 0; color: var(--text); }
+    .markdown-body ul, .markdown-body ol { margin: 8px 0 8px 24px; color: var(--text); }
+    .markdown-body li { margin: 4px 0; }
+    .markdown-body code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 14px;
+      background: rgba(196,116,211,0.15);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .markdown-body pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+    .markdown-body pre code {
+      background: none;
+      color: var(--text);
+      padding: 0;
+    }
+    .markdown-body strong { color: var(--text-heading); font-weight: 600; }
+    .markdown-body hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+    .markdown-body blockquote {
+      border-left: 3px solid var(--accent);
+      padding-left: 16px;
+      color: var(--text-muted);
+      margin: 12px 0;
+    }
+    .markdown-body a { color: var(--accent); text-decoration: none; }
+    .markdown-body a:hover { text-decoration: underline; }
+    .markdown-body table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+    .markdown-body th, .markdown-body td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+    .markdown-body th { background: var(--surface-hover); font-weight: 700; color: var(--text-heading); }
+
+    /* Insight reports */
+    .report-list { display: flex; flex-direction: column; gap: 12px; }
+    .report-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-decoration: none;
+      transition: all 0.15s;
+      color: var(--text);
+    }
+    .report-card:hover {
+      border-color: var(--accent);
+      background: var(--surface-hover);
+    }
+    .report-date { font-weight: 600; font-size: 17px; color: var(--text-heading); }
+    .report-label { font-size: 14px; color: var(--text-muted); margin-top: 2px; }
+    .report-arrow { color: var(--text-muted); font-size: 20px; }
+    .badge-latest { font-size: 14px; font-weight: 600; color: var(--green); background: var(--green-dim); padding: 2px 8px; border-radius: 4px; margin-left: 8px; }
+
+    .empty { padding: 48px; font-size: 16px; }
+
+    /* Settings viewer */
+    .settings-json {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text);
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .json-key { color: var(--accent); }
+    .json-string { color: var(--green); }
+    .json-bool { color: var(--orange); }
+    .json-null { color: var(--text-muted); }
+
+    /* Section headers */
+    .section-header {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 20px;
+    }
+    .section-subheader {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: -12px;
+      margin-bottom: 20px;
+    }
+
+    /* Theme toggle */
+    .theme-toggle {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-size: 18px;
+      z-index: 100;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .hero { padding: 48px 16px 32px; }
+      .hero h1 { font-size: 28px; }
+      .content { padding: 24px 16px 48px; }
+      .markdown-body { padding: 24px; }
+      .card-grid { grid-template-columns: 1fr; }
+      .nav { flex-wrap: wrap; gap: 0; }
+      .nav-tab { padding: 8px 14px; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">🌙</button>
+
+  <!-- Hero (populated from config.json) -->
+  <div class="hero">
+    <a id="hero-avatar-link" href="#" target="_blank" rel="noopener"><img class="hero-avatar" id="hero-avatar" src="" alt="" style="display:none"></a>
+    <h1 id="hero-title">How Frances Codes</h1>
+    <p class="subtitle" id="hero-subtitle">Personal Claude Code setup — MCPs, plugins, skills, hooks, and coding preferences</p>
+    <div style="margin-top:16px;font-size:14px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;gap:8px">
+      <a id="hero-gh-link" href="#" style="color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg> View on GitHub</a>
+      <span>·</span>
+      <span id="last-updated"></span>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="nav">
+    <button class="nav-tab active" data-tab="overview">Overview</button>
+    <button class="nav-tab" data-tab="claude-md">CLAUDE.md</button>
+    <button class="nav-tab" data-tab="skills">Skills</button>
+    <button class="nav-tab" data-tab="mcps">MCPs</button>
+    <button class="nav-tab" data-tab="plugins">Plugins</button>
+    <button class="nav-tab" data-tab="hooks">Hooks</button>
+    <button class="nav-tab" data-tab="settings">Settings</button>
+    <button class="nav-tab" data-tab="shell">Shell</button>
+    <button class="nav-tab" data-tab="tools">Tools</button>
+    <button class="nav-tab" data-tab="insights">Insights</button>
+  </div>
+
+  <main class="content">
+
+    <!-- Overview Tab -->
+    <div class="tab-panel active" id="tab-overview">
+      <div class="stats" id="overview-stats"></div>
+      <h2 class="section-header">👋🏽 Setup at a Glance</h2>
+      <p class="section-subheader">Everything that powers my Claude Code environment</p>
+      <div class="card-grid" id="overview-cards"></div>
+    </div>
+
+    <!-- CLAUDE.md Tab -->
+    <div class="tab-panel" id="tab-claude-md">
+      <h2 class="section-header">📄 Personal CLAUDE.md</h2>
+      <p class="section-subheader">Global instructions loaded into every Claude Code session — <a id="claude-md-gh-link" href="#" target="_blank" style="color:var(--accent)">view raw on GitHub ↗</a></p>
+      <div class="markdown-body" id="claude-md-content">
+        <div class="empty">Loading CLAUDE.md...</div>
+      </div>
+    </div>
+
+    <!-- Skills Tab -->
+    <div class="tab-panel" id="tab-skills">
+      <h2 class="section-header">⚡ Skills</h2>
+      <p class="section-subheader">On-demand templates invoked with <code>/skill-name</code> — loaded only when needed instead of every session</p>
+      <div id="skills-content"></div>
+    </div>
+
+    <!-- MCPs Tab -->
+    <div class="tab-panel" id="tab-mcps">
+      <h2 class="section-header">🔌 MCP Servers</h2>
+      <p class="section-subheader">Model Context Protocol servers that extend Claude's capabilities</p>
+      <div class="card-grid" id="mcp-cards" style="grid-template-columns:repeat(2,1fr)"></div>
+    </div>
+
+    <!-- Plugins Tab -->
+    <div class="tab-panel" id="tab-plugins">
+      <h2 class="section-header">🧩 Plugins</h2>
+      <p class="section-subheader">Claude Code plugins from marketplace registries</p>
+      <div id="plugin-sections"></div>
+    </div>
+
+    <!-- Hooks Tab -->
+    <div class="tab-panel" id="tab-hooks">
+      <h2 class="section-header">🪝 Hooks</h2>
+      <p class="section-subheader">Automated actions triggered by Claude Code events — <a id="hooks-gh-link" href="#" target="_blank" style="color:var(--accent)">defined in settings.json ↗</a></p>
+      <div id="hooks-content"></div>
+    </div>
+
+    <!-- Settings Tab -->
+    <div class="tab-panel" id="tab-settings">
+      <h2 class="section-header">⚙️ Global Settings</h2>
+      <p class="section-subheader">~/.claude/settings.json — permissions, hooks, model config</p>
+      <div style="position:relative">
+        <button id="copy-settings" onclick="copySettings()" style="position:absolute;top:12px;right:12px;background:var(--surface-hover);border:1px solid var(--border);color:var(--text-muted);border-radius:6px;padding:6px 12px;font-size:14px;cursor:pointer;z-index:1;display:flex;align-items:center;gap:4px" title="Copy settings.json">
+          <span id="copy-icon">📋</span> Copy
+        </button>
+        <div class="settings-json" id="settings-content">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Shell Tab -->
+    <div class="tab-panel" id="tab-shell">
+      <h2 class="section-header">🐚 Shell Config</h2>
+      <p class="section-subheader">ZSH config and development aliases</p>
+      <div class="card-grid" style="grid-template-columns:repeat(2,1fr)">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon" style="background:var(--green-dim);color:var(--green)">📊</div>
+            <div class="card-title">Statusline</div>
+          </div>
+          <div class="card-desc">Custom Claude Code statusline showing model, token usage, and session info in the terminal. Powered by a custom script at <code>~/.local/bin/claude-statusline</code>.</div>
+          <div class="card-meta">
+            <span class="badge badge-accent">Custom Script</span>
+            <span class="badge badge-green">Always On</span>
+          </div>
+        </div>
+        <a id="zsh-card-link" href="#" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
+        <div class="card" style="cursor:pointer">
+          <div class="card-header">
+            <div class="card-icon" style="background:var(--blue-dim);color:var(--blue)">🐚</div>
+            <div class="card-title">ZSH Config <span style="font-size:14px;opacity:0.5">↗</span></div>
+          </div>
+          <div class="card-desc">Shell aliases for development — directory navigation, build commands, test runners, git helpers, ripgrep shortcuts, and lazy-loaded nvm.</div>
+          <div class="card-meta">
+            <span class="badge badge-blue">~/.zshrc</span>
+            <span class="badge badge-orange">Starship Prompt</span>
+          </div>
+        </div>
+        </a>
+      </div>
+      <h2 class="section-header" style="margin-top:32px">ZSH Aliases</h2>
+      <p class="section-subheader">Key aliases from <a id="zsh-gh-link" href="#" target="_blank" style="color:var(--accent)">.zshrc ↗</a></p>
+      <div style="position:relative">
+        <button id="copy-zsh" onclick="copyZsh()" style="position:absolute;top:12px;right:12px;background:var(--surface-hover);border:1px solid var(--border);color:var(--text-muted);border-radius:6px;padding:6px 12px;font-size:14px;cursor:pointer;z-index:1;display:flex;align-items:center;gap:4px" title="Copy all aliases">
+          <span id="copy-zsh-icon">📋</span> Copy
+        </button>
+        <div class="settings-json" id="zsh-content" style="white-space:normal;font-family:inherit">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Tools Tab -->
+    <div class="tab-panel" id="tab-tools">
+      <h2 class="section-header">🧰 Tools & Software</h2>
+      <p class="section-subheader">Apps and utilities in my daily workflow</p>
+      <div id="tools-content"></div>
+    </div>
+
+    <!-- Insights Tab -->
+    <div class="tab-panel" id="tab-insights">
+      <h2 class="section-header">📊 Insight Reports</h2>
+      <p class="section-subheader">Historical usage reports from <code>/insights</code> sessions</p>
+      <div class="report-list" id="report-list">
+        <div class="empty">Loading reports...</div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // --- Theme toggle ---
+    const themeToggle = document.getElementById('theme-toggle');
+    const savedTheme = localStorage.getItem('theme') ||
+      (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+    themeToggle.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
+    });
+
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', e => {
+      if (!localStorage.getItem('theme')) {
+        const theme = e.matches ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+        themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+      }
+    });
+
+    // --- Tab navigation ---
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // --- Color palette for MCP icons ---
+    const mcpColors = {
+      'slack':            { bg: 'var(--pink-dim)',   color: 'var(--pink)',   icon: '💬' },
+      'figma-desktop':    { bg: 'var(--accent-dim)', color: 'var(--accent)', icon: '🖼' },
+      'puppeteer':        { bg: 'var(--green-dim)',  color: 'var(--green)',  icon: '🌐' },
+    };
+
+    const pluginIcons = {
+      'code-review':     '👀',
+      'frontend-design': '🎨',
+    };
+
+    // --- Config: personalization from config.json ---
+    let siteConfig = { name: '', full_name: '', github_username: '', github_host: 'github.com', avatar_url: '', repo_name: '', subtitle: '' };
+
+    function applyConfig(config) {
+      siteConfig = { ...siteConfig, ...config };
+      const ghBase = `https://${siteConfig.github_host}/${siteConfig.github_username}`;
+      const pathParts = location.pathname.split('/').filter(Boolean);
+      const repoName = siteConfig.repo_name || pathParts[1] || pathParts[0] || 'how-frances-codes';
+      const repoUrl = `${ghBase}/${repoName}`;
+
+      // Hero avatar
+      if (siteConfig.avatar_url || siteConfig.github_username) {
+        const avatarUrl = siteConfig.avatar_url || `https://avatars.githubusercontent.com/${siteConfig.github_username}`;
+        const avatar = document.getElementById('hero-avatar');
+        avatar.src = avatarUrl;
+        avatar.alt = siteConfig.full_name || siteConfig.name;
+        avatar.style.display = '';
+        avatar.onerror = () => { avatar.style.display = 'none'; };
+        document.getElementById('hero-avatar-link').href = ghBase;
+      }
+      if (siteConfig.name) {
+        document.getElementById('hero-title').innerHTML =
+          `How <a href="${ghBase}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none"><span>${siteConfig.name}</span></a> Codes`;
+        document.title = `How ${siteConfig.name} Codes`;
+      }
+      if (siteConfig.subtitle) {
+        document.getElementById('hero-subtitle').textContent = siteConfig.subtitle;
+      }
+      document.getElementById('hero-gh-link').href = repoUrl;
+
+      // Deep links in tabs
+      const claudeMdLink = document.getElementById('claude-md-gh-link');
+      if (claudeMdLink) claudeMdLink.href = `${repoUrl}/blob/master/CLAUDE.md`;
+      const hooksLink = document.getElementById('hooks-gh-link');
+      if (hooksLink) hooksLink.href = `${repoUrl}/blob/master/settings.json`;
+      const zshLink = document.getElementById('zsh-gh-link');
+      if (zshLink) zshLink.href = `${repoUrl}/blob/master/.zshrc`;
+      const zshCardLink = document.getElementById('zsh-card-link');
+      if (zshCardLink) zshCardLink.href = `${repoUrl}/blob/master/.zshrc`;
+    }
+
+    // --- Fetch and render data ---
+    async function loadAll() {
+      const [config, mcps, plugins, skills, claudeMd, settings, manifest, zshrc, tools] = await Promise.all([
+        fetch('config.json').then(r => r.json()).catch(() => ({})),
+        fetch('mcps.json').then(r => r.json()).catch(() => []),
+        fetch('plugins.json').then(r => r.json()).catch(() => []),
+        fetch('skills.json').then(r => r.json()).catch(() => []),
+        fetch('CLAUDE.md').then(r => r.text()).catch(() => ''),
+        fetch('settings.json').then(r => r.json()).catch(() => ({})),
+        fetch('manifest.json').then(r => r.json()).catch(() => []),
+        fetch('.zshrc').then(r => r.text()).catch(() => ''),
+        fetch('tools.json').then(r => r.json()).catch(() => []),
+      ]);
+
+      applyConfig(config);
+      renderOverview(mcps, plugins, skills, settings, tools);
+      renderClaudeMd(claudeMd);
+      renderSkills(skills);
+      renderMcps(mcps);
+      renderPlugins(plugins);
+      renderHooks(settings);
+      renderSettings(settings);
+      renderZsh(zshrc);
+      renderTools(tools);
+      renderInsights(manifest);
+
+      // Show last synced date from build metadata
+      fetch('build-meta.json')
+        .then(r => r.json())
+        .then(meta => {
+          if (meta.synced_at) {
+            const d = new Date(meta.synced_at);
+            document.getElementById('last-updated').textContent =
+              'Last synced ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          }
+        })
+        .catch(() => {});
+    }
+
+    function renderOverview(mcps, plugins, skills, settings, tools) {
+      const totalTools = mcps.reduce((sum, m) => sum + m.tools.length, 0);
+      const totalPlugins = plugins.length;
+      const totalSkills = skills.length;
+      const totalMcps = mcps.length;
+      const totalApps = (tools || []).length;
+      const hookCount = Object.keys(settings.hooks || {}).reduce((sum, k) =>
+        sum + (settings.hooks[k] || []).length, 0);
+
+      document.getElementById('overview-stats').innerHTML = `
+        <div class="stat-card" style="cursor:pointer" onclick="switchTab('mcps')"><div class="stat-value">${totalMcps}</div><div class="stat-label">MCP Servers</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="switchTab('mcps')"><div class="stat-value">${totalTools}+</div><div class="stat-label">MCP Tools</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="switchTab('plugins')"><div class="stat-value">${totalPlugins}</div><div class="stat-label">Plugins</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="switchTab('skills')"><div class="stat-value">${totalSkills}</div><div class="stat-label">Skills</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="switchTab('hooks')"><div class="stat-value">${hookCount}</div><div class="stat-label">Hooks</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="switchTab('tools')"><div class="stat-value">${totalApps}</div><div class="stat-label">Tools</div></div>
+      `;
+
+      const cards = [
+        { icon: '📄', color: 'accent', title: 'CLAUDE.md', desc: 'Personal global instructions — formatting, git workflow, code quality rules', tab: 'claude-md' },
+        { icon: '⚡', color: 'orange',  title: `${totalSkills} Skills`, desc: 'On-demand templates for Slack messages, project updates, recaps, and PR descriptions', tab: 'skills' },
+        { icon: '🔌', color: 'green',  title: `${totalMcps} MCP Servers`, desc: `${totalTools}+ tools across ${totalMcps} servers — Slack, Jira, Figma, Puppeteer`, tab: 'mcps' },
+        { icon: '🧩', color: 'blue',   title: `${totalPlugins} Plugins`, desc: 'Code review, frontend design, and more from official marketplaces', tab: 'plugins' },
+        { icon: '🪝', color: 'pink',   title: `${hookCount} Hooks`, desc: 'macOS notifications on idle, permission prompts, and task completion', tab: 'hooks' },
+        { icon: '⚙️', color: 'orange', title: 'Settings', desc: `Model: ${settings.model || 'default'} — Permissions, env vars, hooks`, tab: 'settings' },
+        { icon: '🐚', color: 'blue',   title: 'Shell', desc: 'ZSH aliases, Starship prompt, and Claude Code statusline', tab: 'shell' },
+        { icon: '🧰', color: 'cyan',   title: `${totalApps} Tools`, desc: 'Apps and utilities in my daily workflow — AI, development, productivity, and creative tools', tab: 'tools' },
+        { icon: '📊', color: 'green',   title: 'Insights', desc: 'Historical usage reports from <code>/insights</code> sessions — messages, files, and lines changed', tab: 'insights' },
+      ];
+
+      document.getElementById('overview-cards').innerHTML = cards.map(c => `
+        <div class="card" style="cursor:pointer" onclick="switchTab('${c.tab}')">
+          <div class="card-header">
+            <div class="card-icon" style="background:var(--${c.color}-dim);color:var(--${c.color})">${c.icon}</div>
+            <div class="card-title">${c.title}</div>
+          </div>
+          <div class="card-desc">${c.desc}</div>
+        </div>
+      `).join('');
+    }
+
+    function switchTab(name) {
+      document.querySelectorAll('.nav-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === name);
+      });
+      document.querySelectorAll('.tab-panel').forEach(p => {
+        p.classList.toggle('active', p.id === 'tab-' + name);
+      });
+    }
+
+    function renderClaudeMd(text) {
+      document.getElementById('claude-md-content').innerHTML = marked.parse(text);
+    }
+
+    const skillColors = {
+      'Slack': { bg: 'var(--pink-dim)', color: 'var(--pink)', icon: '💬' },
+      'Git':   { bg: 'var(--green-dim)', color: 'var(--green)', icon: '🔀' },
+    };
+
+    function renderSkills(skills) {
+      const el = document.getElementById('skills-content');
+      if (!skills.length) {
+        el.innerHTML = '<div class="empty">No skills configured. Add <code>.md</code> files to <code>~/.claude/skills/</code></div>';
+        return;
+      }
+
+      const categories = {};
+      skills.forEach(s => {
+        const cat = s.category || 'Other';
+        if (!categories[cat]) categories[cat] = [];
+        categories[cat].push(s);
+      });
+
+      const ghBase = `https://${siteConfig.github_host}/${siteConfig.github_username}`;
+      const repoName = siteConfig.repo_name || 'how-frances-codes';
+      const repoUrl = `${ghBase}/${repoName}`;
+
+      let html = '';
+      Object.entries(categories).forEach(([cat, items]) => {
+        const c = skillColors[cat] || { bg: 'var(--accent-dim)', color: 'var(--accent)', icon: '⚡' };
+        html += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;margin-top:${html ? '32px' : '0'}">
+          <span style="font-size:18px">${c.icon}</span>
+          <h3 style="font-size:17px;font-weight:700;color:var(--text-heading);margin:0">${cat}</h3>
+          <span class="badge badge-accent" style="font-size:13px">${items.length}</span>
+        </div>`;
+        html += '<div class="card-grid">';
+        items.forEach(s => {
+          const fileUrl = `${repoUrl}/blob/master/${s.file}`;
+          html += `<a href="${fileUrl}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
+            <div class="card" style="cursor:pointer">
+              <div class="card-header">
+                <div class="card-icon" style="background:${c.bg};color:${c.color}">${c.icon}</div>
+                <div class="card-title">${s.name} <span style="font-size:14px;opacity:0.5">↗</span></div>
+              </div>
+              <div class="card-desc">${s.description}</div>
+              <div class="card-meta">
+                <span class="badge badge-accent"><code style="background:none;color:inherit;padding:0;font-size:inherit">${s.command}</code></span>
+              </div>
+            </div>
+          </a>`;
+        });
+        html += '</div>';
+      });
+
+      el.innerHTML = html;
+    }
+
+    // Small badge icons (12px) for inline use in badges
+    const badgeIcons = {
+      global: '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px;margin-right:3px"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="12" cy="12" rx="4.5" ry="10" fill="none" stroke="currentColor" stroke-width="2"/><line x1="2" y1="12" x2="22" y2="12" stroke="currentColor" stroke-width="2"/></svg>',
+      project: '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px;margin-right:3px"><path d="M10 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-8l-2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
+      anthropic: '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px;margin-right:3px"><path d="M13.827 3.52h3.603L24 20.48h-3.603l-6.57-16.96zm-7.258 0h3.767L16.906 20.48h-3.674l-1.343-3.461H5.017l-1.344 3.46H0L6.57 3.522zm1.21 5.175l-2.33 5.998h4.658l-2.327-5.998z"/></svg>',
+    };
+
+    function renderMcps(mcps) {
+      document.getElementById('mcp-cards').innerHTML = mcps.map(m => {
+        const c = mcpColors[m.id] || { bg: 'var(--accent-dim)', color: 'var(--accent)', icon: '🔧' };
+        const scopeBadge = m.scope === 'global'
+          ? `<span class="badge badge-green">${badgeIcons.global}Global</span>`
+          : `<span class="badge badge-blue">${badgeIcons.project}Project</span>`;
+        const tools = m.tools.map(t => `<span class="tool-tag">${t}</span>`).join('');
+        const linkOpen = m.url ? `<a href="${m.url}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">` : '';
+        const linkClose = m.url ? '</a>' : '';
+        return `${linkOpen}
+          <div class="card"${m.url ? ' style="cursor:pointer"' : ''}>
+            <div class="card-header">
+              <div class="card-icon" style="background:${c.bg};color:${c.color}">${c.icon}</div>
+              <div class="card-title">${m.name}${m.url ? ' <span style="font-size:14px;opacity:0.5">↗</span>' : ''}</div>
+            </div>
+            <div class="card-desc">${m.description}</div>
+            <div class="card-meta">
+              ${scopeBadge}
+              ${m.tools.length ? `<span class="badge badge-accent">${m.tools.length} tool${m.tools.length === 1 ? '' : 's'}</span>` : ''}
+            </div>
+            ${tools ? `<div class="tool-list">${tools}</div>` : ''}
+          </div>
+        ${linkClose}`;
+      }).join('');
+    }
+
+    const anthropicIconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M13.827 3.52h3.603L24 20.48h-3.603l-6.57-16.96zm-7.258 0h3.767L16.906 20.48h-3.674l-1.343-3.461H5.017l-1.344 3.46H0L6.57 3.522zm1.21 5.175l-2.33 5.998h4.658l-2.327-5.998z"/></svg>';
+
+    function renderPluginCard(p) {
+      const icon = pluginIcons[p.id] || '🧩';
+      const scopeParts = p.scope.split('+').map(s => s.trim());
+      const badges = scopeParts.map(s =>
+        s === 'global' ? `<span class="badge badge-green">${badgeIcons.global}Global</span>` : `<span class="badge badge-blue">${badgeIcons.project}Project</span>`
+      ).join('');
+      const linkOpen = p.url ? `<a href="${p.url}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">` : '';
+      const linkClose = p.url ? '</a>' : '';
+      return `${linkOpen}
+        <div class="card"${p.url ? ' style="cursor:pointer"' : ''}>
+          <div class="card-header">
+            <div class="card-icon" style="background:var(--accent-dim);color:var(--accent)">${icon}</div>
+            <div class="card-title">${p.name}${p.url ? ' <span style="font-size:14px;opacity:0.5">↗</span>' : ''}</div>
+          </div>
+          <div class="card-desc">${p.description}</div>
+          <div class="card-meta">
+            ${badges}
+          </div>
+        </div>
+      ${linkClose}`;
+    }
+
+    function renderPlugins(plugins) {
+      const el = document.getElementById('plugin-sections');
+      if (!plugins.length) {
+        el.innerHTML = '<div class="empty">No plugins configured.</div>';
+        return;
+      }
+      let html = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <span style="display:flex;align-items:center">${anthropicIconSvg}</span>
+        <h3 style="font-size:17px;font-weight:700;color:var(--text-heading);margin:0">Anthropic</h3>
+        <span class="badge badge-pink" style="font-size:13px">${plugins.length}</span>
+      </div>`;
+      html += `<div class="card-grid">${plugins.map(renderPluginCard).join('')}</div>`;
+      el.innerHTML = html;
+    }
+
+    const hookEventMeta = {
+      'Notification':  { icon: '🔔', color: 'orange', desc: 'Triggered when Claude needs attention' },
+      'Stop':          { icon: '✅', color: 'green',  desc: 'Triggered when Claude finishes a task' },
+      'PostToolUse':   { icon: '🔧', color: 'blue',   desc: 'Triggered after Claude uses a tool' },
+      'PreToolUse':    { icon: '⚡', color: 'accent', desc: 'Triggered before Claude uses a tool' },
+    };
+
+    function renderHooks(settings) {
+      const hooks = settings.hooks || {};
+      const events = Object.keys(hooks);
+      if (!events.length) {
+        document.getElementById('hooks-content').innerHTML = '<div class="empty">No hooks configured.</div>';
+        return;
+      }
+
+      const hookDescriptions = {
+        'Notification:idle_prompt': 'macOS notification when Claude is waiting for input',
+        'Notification:permission_prompt': 'macOS notification when Claude needs permission to proceed',
+        'Stop:All events': 'macOS notification when Claude finishes a task',
+        'PostToolUse:Write|Edit': 'Auto-runs prettier on JS/TS files and markdownlint on .md files after every edit',
+      };
+      const ghBase = `https://${siteConfig.github_host}/${siteConfig.github_username}`;
+      const repoName = siteConfig.repo_name || 'how-frances-codes';
+      const settingsUrl = `${ghBase}/${repoName}/blob/master/settings.json`;
+
+      const allCards = [];
+      events.forEach(event => {
+        const meta = hookEventMeta[event] || { icon: '⚙️', color: 'accent', desc: '' };
+        (hooks[event] || []).forEach(entry => {
+          const matcher = entry.matcher || 'All events';
+          const cmds = (entry.hooks || []).map(h => {
+            const cmd = h.command || '';
+            const notifMatch = cmd.match(/display notification \\"([^\\]*)\\"/);
+            const titleMatch = cmd.match(/title \\"([^\\]*)\\"/);
+            const soundMatch = cmd.match(/sound name \\"([^\\]*)\\"/);
+            if (notifMatch) {
+              const title = titleMatch ? titleMatch[1] : '';
+              const body = notifMatch[1];
+              const sound = soundMatch ? soundMatch[1] : '';
+              return { title, body, sound, raw: cmd };
+            }
+            return { raw: cmd };
+          });
+
+          const cmdHtml = cmds.map(c => {
+            if (c.title) {
+              return `
+                <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:8px">
+                  <div style="font-size:14px;color:var(--text-heading);font-weight:600;margin-bottom:4px">${c.body}</div>
+                  <div style="font-size:14px;color:var(--text-muted)">Sound: ${c.sound} · macOS notification</div>
+                </div>`;
+            }
+            return `<div class="tool-tag" style="font-size:14px;padding:6px 10px;margin-top:8px;white-space:normal;word-break:break-all">$ ${c.raw}</div>`;
+          }).join('');
+
+          const descKey = `${event}:${matcher}`;
+          const desc = hookDescriptions[descKey] || '';
+          allCards.push(`
+            <a href="${settingsUrl}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
+            <div class="card" style="cursor:pointer">
+              <div class="card-header">
+                <div class="card-icon" style="background:var(--${meta.color}-dim);color:var(--${meta.color})">${meta.icon}</div>
+                <div class="card-title">${event} <span style="font-size:14px;opacity:0.5">↗</span></div>
+              </div>
+              <div class="card-meta" style="margin-bottom:8px">
+                <span class="badge badge-accent">${matcher}</span>
+              </div>
+              ${desc ? `<div style="font-size:14px;color:var(--text-muted);margin-bottom:8px">${desc}</div>` : ''}
+              ${cmdHtml}
+            </div>
+            </a>
+          `);
+        });
+      });
+
+      document.getElementById('hooks-content').innerHTML =
+        '<div class="card-grid">' + allCards.join('') + '</div>';
+    }
+
+    let rawSettingsJson = '';
+    function renderSettings(settings) {
+      rawSettingsJson = JSON.stringify(settings, null, 2);
+      const highlighted = rawSettingsJson
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"([^"]+)":/g, '<span class="json-key">"$1"</span>:')
+        .replace(/: "([^"]*)"/g, ': <span class="json-string">"$1"</span>')
+        .replace(/: (true|false)/g, ': <span class="json-bool">$1</span>')
+        .replace(/: (null)/g, ': <span class="json-null">$1</span>');
+      document.getElementById('settings-content').innerHTML = highlighted;
+    }
+
+    function copySettings() {
+      navigator.clipboard.writeText(rawSettingsJson).then(() => {
+        const btn = document.getElementById('copy-settings');
+        const icon = document.getElementById('copy-icon');
+        icon.textContent = '✅';
+        btn.lastChild.textContent = ' Copied';
+        setTimeout(() => { icon.textContent = '📋'; btn.lastChild.textContent = ' Copy'; }, 2000);
+      });
+    }
+
+    const toolCategoryColors = {
+      'AI':            { bg: 'var(--accent-dim)', color: 'var(--accent)', icon: '🤖' },
+      'Development':   { bg: 'var(--green-dim)',  color: 'var(--green)',  icon: '💻' },
+      'Communication': { bg: 'var(--pink-dim)',   color: 'var(--pink)',   icon: '💬' },
+      'Productivity':  { bg: 'var(--orange-dim)', color: 'var(--orange)', icon: '⚡' },
+      'Creative':      { bg: 'var(--cyan-dim)',   color: 'var(--cyan)',   icon: '🎨' },
+    };
+
+    function renderTools(tools) {
+      const el = document.getElementById('tools-content');
+      if (!tools || !tools.length) {
+        el.innerHTML = '<div class="empty">No tools configured yet.</div>';
+        return;
+      }
+
+      const categories = {};
+      tools.forEach(t => {
+        const cat = t.category || 'Other';
+        if (!categories[cat]) categories[cat] = [];
+        categories[cat].push(t);
+      });
+
+      const order = ['AI', 'Development', 'Communication', 'Productivity', 'Creative'];
+      const sorted = order.filter(c => categories[c]).concat(
+        Object.keys(categories).filter(c => !order.includes(c))
+      );
+
+      let html = '';
+      sorted.forEach(cat => {
+        const items = categories[cat];
+        const c = toolCategoryColors[cat] || { bg: 'var(--accent-dim)', color: 'var(--accent)', icon: '🧰' };
+        html += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;margin-top:${html ? '32px' : '0'}">
+          <span style="font-size:18px">${c.icon}</span>
+          <h3 style="font-size:17px;font-weight:700;color:var(--text-heading);margin:0">${cat}</h3>
+          <span class="badge badge-accent" style="font-size:13px">${items.length}</span>
+        </div>`;
+        html += '<div class="card-grid" style="grid-template-columns:repeat(2,1fr)">';
+        items.forEach(t => {
+          const linkOpen = t.url ? `<a href="${t.url}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">` : '';
+          const linkClose = t.url ? '</a>' : '';
+          html += `${linkOpen}
+            <div class="card"${t.url ? ' style="cursor:pointer"' : ''}>
+              <div class="card-header">
+                <div class="card-icon" style="background:${c.bg};color:${c.color}">${t.icon || c.icon}</div>
+                <div class="card-title">${t.name}${t.url ? ' <span style="font-size:14px;opacity:0.5">↗</span>' : ''}</div>
+              </div>
+              <div class="card-desc">${t.description}</div>
+              <div class="card-meta">
+                <span class="badge badge-accent">${cat}</span>
+              </div>
+            </div>
+          ${linkClose}`;
+        });
+        html += '</div>';
+      });
+
+      el.innerHTML = html;
+    }
+
+    function renderInsights(reports) {
+      const list = document.getElementById('report-list');
+      if (!reports.length) {
+        list.innerHTML = '<div class="empty">No reports yet. Run <code>/insights</code> in Claude Code to generate one.</div>';
+        return;
+      }
+      reports.sort((a, b) => b.date.localeCompare(a.date));
+      list.innerHTML = reports.map((r, i) => {
+        const d = new Date(r.date + 'T12:00:00');
+        const formatted = d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const badge = i === 0 ? '<span class="badge-latest">Latest</span>' : '';
+        return `<a class="report-card" href="${r.file}">
+          <div>
+            <div class="report-date">${formatted}${badge}</div>
+            <div class="report-label">${r.messages || 0} messages · ${r.files || 0} files · ${r.lines || '0'} lines · ${r.days || 0} days</div>
+          </div>
+          <div class="report-arrow">→</div>
+        </a>`;
+      }).join('');
+    }
+
+    let rawZshAliases = '';
+    function renderZsh(text) {
+      const el = document.getElementById('zsh-content');
+      if (!text) { el.innerHTML = '<div class="empty">No .zshrc found.</div>'; return; }
+
+      const lines = text.split('\n');
+      const sections = [];
+      let current = null;
+
+      const sectionIcons = {
+        'directory navigation': '📂', 'build commands': '🔨', 'descriptive': '🔨',
+        'frontend testing': '🧪', 'backend commands': '⚙️', 'code quality': '✨',
+        'git helpers': '🌿', 'quick search': '🔍', 'troubleshooting': '🔧',
+        'dns and cache': '🌐', 'node/npm': '🩹', 'workflow combos': '🔗',
+        'claude code': '🤖', 'development': '💻',
+      };
+
+      for (const line of lines) {
+        const headerMatch = line.match(/^# (.+)/);
+        if (headerMatch && !line.startsWith('##')) {
+          current = { title: headerMatch[1].trim(), aliases: [] };
+          sections.push(current);
+          continue;
+        }
+        const aliasMatch = line.match(/^alias\s+(\S+?)='(.+)'$/);
+        if (aliasMatch && current) {
+          current.aliases.push({ name: aliasMatch[1], cmd: aliasMatch[2] });
+        }
+      }
+
+      const withAliases = sections.filter(s => s.aliases.length > 0);
+
+      rawZshAliases = withAliases.map(s =>
+        `# ${s.title}\n` + s.aliases.map(a => `alias ${a.name}='${a.cmd}'`).join('\n')
+      ).join('\n\n');
+
+      el.innerHTML = withAliases.map(s => {
+        const key = s.title.toLowerCase();
+        const icon = Object.entries(sectionIcons).find(([k]) => key.includes(k))?.[1] || '📎';
+        const rows = s.aliases.map(a =>
+          '<tr><td style="color:var(--accent);font-weight:600;white-space:nowrap;padding:2px 12px 2px 0;font-size:14px">' + a.name + '</td><td style="color:var(--text-muted);font-family:monospace;font-size:14px">' + a.cmd.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</td></tr>'
+        ).join('');
+        return '<div style="margin-bottom:14px"><div style="font-size:14px;font-weight:600;color:var(--text-heading);margin-bottom:4px">' + icon + ' ' + s.title + '</div><table style="width:100%;border-collapse:collapse">' + rows + '</table></div>';
+      }).join('');
+    }
+
+    function copyZsh() {
+      navigator.clipboard.writeText(rawZshAliases).then(() => {
+        const btn = document.getElementById('copy-zsh');
+        const icon = document.getElementById('copy-zsh-icon');
+        icon.textContent = '✅';
+        btn.lastChild.textContent = ' Copied';
+        setTimeout(() => { icon.textContent = '📋'; btn.lastChild.textContent = ' Copy'; }, 2000);
+      });
+    }
+
+    loadAll();
+  </script>
+</body>
+</html>

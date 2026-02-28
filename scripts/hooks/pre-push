@@ -1,0 +1,49 @@
+#!/bin/bash
+# Pre-push hook: runs Lighthouse a11y check when index.html is being pushed
+# Blocks push if accessibility score drops below 95/100
+
+REPO_PATH="$(git rev-parse --show-toplevel)"
+
+# Check if index.html changed in the commits being pushed
+CHANGED_FILES=$(git diff --name-only @{upstream}..HEAD 2>/dev/null || git diff --name-only HEAD~1..HEAD 2>/dev/null)
+
+if ! echo "$CHANGED_FILES" | grep -q "index.html"; then
+    exit 0
+fi
+
+echo "🔍 Running Lighthouse accessibility audit..."
+
+if ! command -v npx &>/dev/null; then
+    echo "⚠️  npx not found, skipping Lighthouse check"
+    exit 0
+fi
+
+# Start temp server
+python3 -m http.server 8798 --directory "$REPO_PATH" &>/dev/null &
+SERVER_PID=$!
+sleep 1
+
+# Run Lighthouse
+SCORE=$(npx lighthouse http://localhost:8798/index.html \
+    --only-categories=accessibility \
+    --output=json \
+    --chrome-flags="--headless --no-sandbox" 2>/dev/null \
+    | python3 -c "import sys,json;print(int(json.load(sys.stdin)['categories']['accessibility']['score']*100))" 2>/dev/null)
+
+kill $SERVER_PID 2>/dev/null
+
+if [[ -z "$SCORE" ]]; then
+    echo "⚠️  Could not determine Lighthouse score, allowing push"
+    exit 0
+fi
+
+echo "Lighthouse a11y score: $SCORE/100"
+
+if [[ "$SCORE" -lt 95 ]]; then
+    echo "❌ Push blocked — accessibility score ($SCORE) is below 95"
+    echo "   Fix a11y issues before pushing."
+    exit 1
+fi
+
+echo "✅ Accessibility check passed"
+exit 0
